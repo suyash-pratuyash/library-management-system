@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -67,17 +68,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction saved = transactionRepository.save(transaction);
 
-        return new TransactionResponse(
-                saved.getId(),
-                book.getId(),
-                book.getTitle(),
-                member.getId(),
-                member.getName(),
-                saved.getBorrowDate(),
-                saved.getDueDate(),
-                saved.getReturnDate(),
-                saved.getStatus()
-        );
+        return mapToResponse(saved);
     }
 
     @Override
@@ -102,16 +93,45 @@ public class TransactionServiceImpl implements TransactionService {
         book.setAvailableCopies(book.getAvailableCopies() + 1);
         bookRepository.save(book);
 
+        return mapToResponse(saved);
+    }
+
+    @Override
+    public List<TransactionResponse> getByMemberId(Long memberId) {
+        return transactionRepository.findByMemberId(memberId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TransactionResponse> getByBookId(Long bookId) {
+        return transactionRepository.findByBookId(bookId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Override
+    public List<TransactionResponse> getActiveTransactions() {
+        return transactionRepository.findByStatus(TransactionStatus.BORROWED)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    // Shared response-mapping helper — used by all five methods above
+    private TransactionResponse mapToResponse(Transaction transaction) {
         return new TransactionResponse(
-                saved.getId(),
-                book.getId(),
-                book.getTitle(),
+                transaction.getId(),
+                transaction.getBook().getId(),
+                transaction.getBook().getTitle(),
                 transaction.getMember().getId(),
                 transaction.getMember().getName(),
-                saved.getBorrowDate(),
-                saved.getDueDate(),
-                saved.getReturnDate(),
-                saved.getStatus()
+                transaction.getBorrowDate(),
+                transaction.getDueDate(),
+                transaction.getReturnDate(),
+                transaction.getStatus()
         );
     }
 }
