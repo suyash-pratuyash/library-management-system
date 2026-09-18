@@ -34,29 +34,23 @@ public class TransactionController {
     }
 
     // GET /api/transactions/member/{memberId}
-    // TODO: TransactionService has no method for this yet.
-    // Needs something like: List<TransactionResponse> getByMemberId(Long memberId);
     @GetMapping("/member/{memberId}")
     public ResponseEntity<List<TransactionResponse>> getByMember(@PathVariable Long memberId) {
-        throw new UnsupportedOperationException(
-                "TransactionService needs a getByMemberId(Long) method before this endpoint can work");
+        List<TransactionResponse> transactions = transactionService.getByMemberId(memberId);
+        return ResponseEntity.ok(transactions);
     }
 
     // GET /api/transactions/book/{bookId}
-    // TODO: TransactionService has no method for this yet.
-    // Needs something like: List<TransactionResponse> getByBookId(Long bookId);
     @GetMapping("/book/{bookId}")
     public ResponseEntity<List<TransactionResponse>> getByBook(@PathVariable Long bookId) {
-        throw new UnsupportedOperationException(
-                "TransactionService needs a getByBookId(Long) method before this endpoint can work");
+        List<TransactionResponse> transactions = transactionService.getByBookId(bookId);
+        return ResponseEntity.ok(transactions);
     }
 
     // GET /api/transactions/active
-    // TODO: TransactionService has no method for this yet.
-    // Needs something like: List<TransactionResponse> getActiveTransactions();
     @GetMapping("/active")
     public ResponseEntity<List<TransactionResponse>> getActive() {
-        throw new UnsupportedOperationException(
-                "TransactionService needs a getActiveTransactions() method before this endpoint can work");
+        List<TransactionResponse> transactions = transactionService.getActiveTransactions();
+        return ResponseEntity.ok(transactions);
     }
 }
