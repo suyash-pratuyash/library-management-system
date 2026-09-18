@@ -1,6 +1,7 @@
 package com.library.lms.service.impl;
 
 import com.library.lms.dto.BorrowRequest;
+import com.library.lms.dto.ReturnRequest;
 import com.library.lms.dto.TransactionResponse;
 import com.library.lms.entity.*;
 import com.library.lms.exception.BusinessRuleException;
@@ -72,6 +73,41 @@ public class TransactionServiceImpl implements TransactionService {
                 book.getTitle(),
                 member.getId(),
                 member.getName(),
+                saved.getBorrowDate(),
+                saved.getDueDate(),
+                saved.getReturnDate(),
+                saved.getStatus()
+        );
+    }
+
+    @Override
+    @Transactional
+    public TransactionResponse returnBook(ReturnRequest request) {
+
+        // Find the open (BORROWED) transaction for this book + member
+        Transaction transaction = transactionRepository
+                .findByBookIdAndMemberIdAndStatus(
+                        request.bookId(), request.memberId(), TransactionStatus.BORROWED)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No active BORROWED transaction found for book id "
+                                + request.bookId() + " and member id " + request.memberId()));
+
+        // Set returnDate and status
+        transaction.setReturnDate(LocalDate.now());
+        transaction.setStatus(TransactionStatus.RETURNED);
+        Transaction saved = transactionRepository.save(transaction);
+
+        // Increment the book's availableCopies
+        Book book = transaction.getBook();
+        book.setAvailableCopies(book.getAvailableCopies() + 1);
+        bookRepository.save(book);
+
+        return new TransactionResponse(
+                saved.getId(),
+                book.getId(),
+                book.getTitle(),
+                transaction.getMember().getId(),
+                transaction.getMember().getName(),
                 saved.getBorrowDate(),
                 saved.getDueDate(),
                 saved.getReturnDate(),
